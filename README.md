@@ -13,6 +13,8 @@ Add2Num/
 |-- src/
 |   |-- myBigNumber.cpp
 |   |-- main.cpp
+|-- test/
+|   |-- demo.cpp
 |-- README.md
 ```
 
@@ -138,13 +140,13 @@ Run the following command from the root of the `Add2Num` directory. This compile
 
 
 ```powershell
-g++ src/myBigNumber.cpp test/test.cpp -o run_tests.exe
+g++ src/myBigNumber.cpp test/demo.cpp -o run_tests.exe
 ./run_tests.exe
 ```
 
 Or a stricter version:
 ```powershell
-g++ -std=c++17 -Wall -Wextra -pedantic -Iinc src/myBigNumber.cpp test/test.cpp -o run_tests.exe
+g++ -std=c++17 -Wall -Wextra -pedantic -Iinc src/myBigNumber.cpp test/demo.cpp -o run_tests.exe
 ./run_tests.exe
 ```
 
