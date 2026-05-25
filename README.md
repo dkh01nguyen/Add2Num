@@ -119,8 +119,36 @@ The program will print:
 Please provide two numbers as command-line arguments.
 ```
 
+## Tests
+
+A separate test suite is provided to verify the core addition logic against different edge cases (e.g., carry propagation, different string lengths, and zero values). The tests use standard C++ assertions.
+
+A separate test suite (`test/test.cpp`) is provided to verify the core addition logic against various edge cases, such as carry propagation, different string lengths, and zero values. 
+
+This project uses the standard C++ `<cassert>` library for testing rather than a heavy external framework. 
+
+### How `assert` Works
+
+The `assert(expression)` macro evaluates a given condition:
+* **If the condition is `true`** (e.g., `mbn.sum("123", "456") == "579"`), the program quietly continues to the next line.
+* **If the condition is `false`**, the program immediately aborts execution and prints an error message to the terminal showing exactly which file and line number failed. This makes debugging very straightforward.
+
+**To build the tests:**
+Run the following command from the root of the `Add2Num` directory. This compiles the big-number logic along with the test file instead of the main application.
+
+
+```powershell
+g++ src/myBigNumber.cpp test/test.cpp -o run_tests.exe
+./run_tests.exe
+```
+
+Or a stricter version:
+```powershell
+g++ -std=c++17 -Wall -Wextra -pedantic -Iinc src/myBigNumber.cpp test/test.cpp -o run_tests.exe
+./run_tests.exe
+```
+
 ## Notes
 
 - The current program handles non-negative integers only.
-- If you want a more complete layout like the sample, you can add a `tests/` folder and a separate test file later.
 - The log output is printed to help follow each addition step and carry value.
