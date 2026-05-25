@@ -4,7 +4,7 @@ using namespace std;
 
 int main(int argc, char* argv[]) {
     if (argc != 3) {
-        cout << "Vui long nhap tham so" << '\n';
+        cout << "Please provide two numbers as command-line arguments." << '\n';
         return 0;
     }
 
@@ -14,6 +14,6 @@ int main(int argc, char* argv[]) {
     MyBigNumber myBigNumber;
     string result = myBigNumber.sum(stn1, stn2);
 
-    cout << "Ket qua: " << result << '\n';
+    cout << "Result: " << result << '\n';
     return 0;
 }
