@@ -83,7 +83,7 @@ cd Add2Num
 Then run the following command from the `Add2Num` directory:
 
 ```powershell
-g++ src/myBigNumber.cpp src/main.cpp -o add2num.exe
+g++ -Iinc src/myBigNumber.cpp src/main.cpp -o add2num.exe
 ```
 
 Or a stricter version:
@@ -140,7 +140,7 @@ Run the following command from the root of the `Add2Num` directory. This compile
 
 
 ```powershell
-g++ src/myBigNumber.cpp test/demo.cpp -o run_tests.exe
+g++ -Iinc src/myBigNumber.cpp test/demo.cpp -o run_tests.exe
 ./run_tests.exe
 ```
 

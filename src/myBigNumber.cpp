@@ -1,4 +1,4 @@
-#include "../inc/myBigNumber.h"
+#include "myBigNumber.h"
 
 using namespace std;
 
