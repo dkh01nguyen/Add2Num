@@ -1,55 +1,126 @@
 # Add2Num
 
-Add2Num is a small C++ command-line program that adds two large non-negative integers represented as strings. It is useful when the numbers are too large to fit in built-in integer types.
+Add2Num is a C++ project that implements addition for two large numbers represented as strings. It adds digits from right to left, just like elementary-school addition.
 
-The project also prints step-by-step logging for each digit addition, including carry handling, so you can follow the algorithm as it runs.
-
-## Features
-
-- Adds arbitrarily large whole numbers using string-based arithmetic
-- Preserves leading-digit carry when the sum grows in length
-- Prints a readable step-by-step trace of each addition step
+Example: "1234" + "897" = "2131"
 
 ## Project Structure
 
-- `inc/myBigNumber.h` - class declaration
-- `src/myBigNumber.cpp` - big-number addition logic and logging
-- `src/main.cpp` - command-line interface
+```text
+Add2Num/
+|-- inc/
+|   |-- myBigNumber.h
+|-- src/
+|   |-- myBigNumber.cpp
+|   |-- main.cpp
+|-- README.md
+```
+
+File meanings:
+
+```text
+inc/myBigNumber.h         Declares the MyBigNumber class
+src/myBigNumber.cpp       Implements the big-number addition algorithm
+src/main.cpp              Demo program
+README.md                 Build and usage guide
+```
+
+## Main Method
+
+The `MyBigNumber` class provides the following method:
+
+```cpp
+string sum(string stn1, string stn2);
+```
+
+Where:
+
+```text
+stn1    First number, represented as a string
+stn2    Second number, represented as a string
+return  The sum of stn1 and stn2, represented as a string
+```
+
+According to the problem statement, the input is assumed to be valid and contains only digits from `0` to `9`, so the program does not perform input validation.
+
+## Algorithm
+
+The algorithm works as follows:
+
+```text
+1. Traverse stn1 and stn2 from right to left at the same time.
+2. Read each character and convert it to a digit.
+3. Add the two digits together with the carry value.
+4. Store the ones digit in the temporary result.
+5. Keep the carry for the next step.
+6. After the traversal, append the remaining carry if it exists.
+7. Reverse the temporary result to obtain the final answer.
+```
+
+The program prints the history of each addition step.
+
+## Environment Requirements
+
+A C++ compiler that supports C++17 is required, for example `g++`.
+
+Check `g++`:
+
+```powershell
+g++ --version
+```
 
 ## Build
 
-From the project root, compile with `g++`:
-
-```bash
-g++ src/myBigNumber.cpp src/main.cpp -o main.exe
-```
-
-If you prefer a warning-heavy build, you can also use:
-
-```bash
-g++ -Wall -Wextra -Wpedantic -Wshadow -Wformat=2 -Wcast-align -Wconversion -Wsign-conversion -Wnull-dereference -g3 -O0 src/myBigNumber.cpp src/main.cpp -o main.exe
-```
-
-## Usage
-
-Run the program with two numbers as command-line arguments:
+Clone the repository from GitHub and change into the project directory first:
 
 ```powershell
-./main.exe 1234 5567
+git clone https://github.com/dkh01nguyen/Add2Num.git
+cd Add2Num
 ```
 
-Example output:
+Then run the following command from the `Add2Num` directory:
+
+```powershell
+g++ src/myBigNumber.cpp src/main.cpp -o add2num.exe
+```
+
+Or a stricter version:
+```powershell
+g++ -std=c++17 -Wall -Wextra -pedantic -Iinc src/myBigNumber.cpp src/main.cpp -o add2num.exe
+```
+
+## Run
+
+The program accepts 2 arguments. To run it, use:
+
+```powershell
+./add2num.exe 1234 897
+```
+
+Expected output:
 
 ```text
 Step 1: 4 + 7 + 0 = 11 (Result: 1, Carry: 1)
-Step 2: 3 + 6 + 1 = 10 (Result: 0, Carry: 1)
-Step 3: 2 + 5 + 1 = 8 (Result: 8, Carry: 0)
-Step 4: 1 + 5 + 0 = 6 (Result: 6, Carry: 0)
-Result: 6801
+Step 2: 3 + 9 + 1 = 13 (Result: 3, Carry: 1)
+Step 3: 2 + 8 + 1 = 11 (Result: 1, Carry: 1)
+Step 4: 1 + 0 + 1 = 2 (Result: 2, Carry: 0)
+Result: 2131
+```
+
+If you run it without arguments:
+
+```powershell
+./add2num.exe
+```
+
+The program will print:
+
+```text
+Please provide two numbers as command-line arguments.
 ```
 
 ## Notes
 
-- The program expects exactly two arguments.
-- Input should contain digits only.
-- The current implementation is intended for non-negative integers.
+- The current program handles non-negative integers only.
+- If you want a more complete layout like the sample, you can add a `tests/` folder and a separate test file later.
+- The log output is printed to help follow each addition step and carry value.
