@@ -100,7 +100,7 @@ static std::string sum_new(const std::string& a, const std::string& b) {
 }
 
 // ==========================================
-// BENCHMARK RUNNER (improved)
+// BENCHMARK RUNNER
 // ==========================================
 void run_benchmark(const std::string& label, const std::string& n1, const std::string& n2, int iterations) {
     std::cout << "\n==================================================\n";
@@ -171,7 +171,7 @@ void run_benchmark(const std::string& label, const std::string& n1, const std::s
     std::cout << "Avg Bytes Allocated     | " << avg_bytes_old << " B             | " << avg_bytes_new << " B\n";
 
     if (avg_time_new > 0.0) {
-        std::cout << "\n🚀 Performance Gain: " << (avg_time_old / avg_time_new) << "x faster\n";
+        std::cout << "Performance Gain: " << (avg_time_old / avg_time_new) << "x faster\n";
     }
 }
 
