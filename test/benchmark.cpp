@@ -4,6 +4,7 @@
 #include <vector>
 #include <algorithm>
 #include <cstdlib>
+#include <new>
 
 // Global counters for memory tracking
 size_t global_allocations = 0;
@@ -13,7 +14,12 @@ size_t global_bytes_allocated = 0;
 void* operator new(size_t size) {
     global_allocations++;
     global_bytes_allocated += size;
-    return malloc(size);
+    void* p = malloc(size);
+    if (p == nullptr) {
+        throw std::bad_alloc();
+    }
+
+    return p;
 }
 
 void operator delete(void* p) noexcept {
@@ -175,7 +181,7 @@ void run_benchmark(const std::string& label, const std::string& n1, const std::s
     }
 }
 
-int main(int argc, char** argv) {
+int main() {
     // Small numbers (many iterations)
     run_benchmark("Small Numbers", "12345", "67890", 10000);
 

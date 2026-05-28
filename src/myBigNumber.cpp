@@ -10,8 +10,9 @@ ostream& MyBigNumber::defaultLogStream() {
     return defaultStream;
 }
 
-string MyBigNumber::sum(const string stn1, const string stn2) {
+string MyBigNumber::sum(const string& stn1, const string& stn2) {
     string result;
+    result.reserve(max(stn1.length(), stn2.length()) + 1);
     int i = stn1.length() - 1;
     int j = stn2.length() - 1;
     int carry = 0, digit1 = 0, digit2 = 0, carryIn = 0, step = 1;
@@ -37,6 +38,8 @@ string MyBigNumber::sum(const string stn1, const string stn2) {
     return result;
 }
 
-void MyBigNumber::Step(int step, int digit1, int digit2, int previousCarry,int total, int resultDigit, int nextCarry, const std::string& partialResult) const {
-    *logLines << "Step " << step << ": " << digit1 << " + " << digit2 << " + " << previousCarry << " = " << total << " (Result: " << resultDigit << ", Carry: " << nextCarry << ")" << std::endl;
+void MyBigNumber::Step(int step, int digit1, int digit2, int previousCarry, int total, int resultDigit, int nextCarry, const std::string& partialResult) const {
+    std::string cumulative = partialResult;
+    std::reverse(cumulative.begin(), cumulative.end());
+    *logLines << "Step " << step << ": " << digit1 << " + " << digit2 << " + " << previousCarry << " = " << total << " (Result: " << resultDigit << ", Carry: " << nextCarry << ", Cumulative Result: " << cumulative << ")" << std::endl;
 }

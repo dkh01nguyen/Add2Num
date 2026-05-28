@@ -8,7 +8,7 @@
 class MyBigNumber {
 public:
     MyBigNumber(bool enableLogging = true, std::ostream& logStream = defaultLogStream());
-    std::string sum(const std::string stn1, const std::string stn2);
+    std::string sum(const std::string& stn1, const std::string& stn2);
 
 private:
     bool enableLogging;
