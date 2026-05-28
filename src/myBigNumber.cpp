@@ -38,9 +38,7 @@ string MyBigNumber::sum(const string& stn1, const string& stn2) {
         }
 
         if (enableLogging) {
-            string partialResult = result.substr(result.length() - step);
-            reverse(partialResult.begin(), partialResult.end());
-            Step(step++, digit1, digit2, carryIn, total, resultDigit, carry, partialResult);
+            Step(step++, digit1, digit2, carryIn, total, resultDigit, carry);
         }
 
         i--; j--;
@@ -49,8 +47,7 @@ string MyBigNumber::sum(const string& stn1, const string& stn2) {
     return result;
 }
 
-void MyBigNumber::Step(int step, int digit1, int digit2, int previousCarry, int total, int resultDigit, int nextCarry, const std::string& partialResult) const {
-    std::string cumulative = partialResult;
-    std::reverse(cumulative.begin(), cumulative.end());
-    *logLines << "Step " << step << ": " << digit1 << " + " << digit2 << " + " << previousCarry << " = " << total << " (Result: " << resultDigit << ", Carry: " << nextCarry << ", Cumulative Result: " << cumulative << ")" << std::endl;
+void MyBigNumber::Step(int step, int digit1, int digit2, int previousCarry, int total, int resultDigit, int nextCarry) const {
+    *logLines   << "Step " << step << ": " << digit1 << " + " << digit2 << " + " 
+                << previousCarry << " = " << total << " (Result: " << resultDigit << ", Carry: " << nextCarry << ")" << std::endl;
 }

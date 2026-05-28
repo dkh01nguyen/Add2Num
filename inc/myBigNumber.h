@@ -16,7 +16,7 @@ private:
 
     static std::ostream& defaultLogStream();
 
-    void Step(int step, int digit1, int digit2, int previousCarry, int total, int resultDigit, int nextCarry, const std::string& partialResult) const;
+    void Step(int step, int digit1, int digit2, int previousCarry, int total, int resultDigit, int nextCarry) const;
 };
 
 #endif // MY_BIG_NUMBER_H
