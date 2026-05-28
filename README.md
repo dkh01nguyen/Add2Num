@@ -88,6 +88,7 @@ g++ -Iinc src/myBigNumber.cpp src/main.cpp -o add2num.exe
 ```
 
 Or a stricter version:
+
 ```powershell
 g++ -std=c++17 -Wall -Wextra -pedantic -Iinc src/myBigNumber.cpp src/main.cpp -o add2num.exe
 ```
@@ -126,14 +127,14 @@ Please provide two numbers as command-line arguments.
 
 A separate test suite is provided to verify the core addition logic against different edge cases (e.g., carry propagation, different string lengths, and zero values). The tests use standard C++ assertions.
 
-A separate test suite (`test/demo.cpp`) is provided to verify the core addition logic against various edge cases, such as carry propagation, different string lengths, and zero values. 
-
-This project uses the standard C++ `<cassert>` library for testing rather than a heavy external framework. 
+A separate test suite (`test/demo.cpp`) is provided to verify the core addition logic against various edge cases, such as carry propagation, different string lengths, and zero values. This project uses the standard C++ `<cassert>` library for testing rather than a heavy external framework.
 
 ### How `assert` Works
 
 The `assert(expression)` macro evaluates a given condition:
+
 * **If the condition is `true`** (e.g., `mbn.sum("123", "456") == "579"`), the program quietly continues to the next line.
+
 * **If the condition is `false`**, the program immediately aborts execution and prints an error message to the terminal showing exactly which file and line number failed. This makes debugging very straightforward.
 
 **To build the tests:**
@@ -145,6 +146,7 @@ g++ -Iinc src/myBigNumber.cpp test/demo.cpp -o run_tests.exe
 ```
 
 Or a stricter version:
+
 ```powershell
 g++ -std=c++17 -Wall -Wextra -pedantic -Iinc src/myBigNumber.cpp test/demo.cpp -o run_tests.exe
 ./run_tests.exe
@@ -152,5 +154,67 @@ g++ -std=c++17 -Wall -Wextra -pedantic -Iinc src/myBigNumber.cpp test/demo.cpp -
 
 ## Notes
 
-- The current program handles non-negative integers only.
-- The log output is printed to help follow each addition step and carry value.
+* The current program handles non-negative integers only.
+* The log output is printed to help follow each addition step and carry value.
+
+## Benchmark
+
+An improved micro-benchmark testbench has been added at [test/benchmark.cpp](test/benchmark.cpp). It compares the original O(N^2)-style implementation (`src/myBigNumber_old.cpp`) against the optimized O(N) implementation (`src/myBigNumber.cpp`) across multiple iterations, measuring average execution time and average heap allocations/bytes. The benchmark is self-contained — both implementations are inlined in `test/benchmark.cpp` so a single compile step is sufficient.
+
+To compile and run the benchmark (Windows / MinGW or WSL):
+
+```powershell
+g++ -std=c++17 -O2 test/benchmark.cpp -o benchmark.exe
+.\benchmark.exe
+```
+
+Notes:
+
+* The testbench runs a high-iteration small-number test and a lower-iteration large-number test to highlight time and allocation differences.
+* Results show average microsecond timings and average heap allocation counts/bytes for each implementation.
+* You can adjust iteration counts by editing `test/benchmark.cpp` and recompiling.
+
+### Sample benchmark results
+
+The following is a short sample output from running the testbench on a development machine:
+
+```text
+BENCHMARK: Small Numbers (5 and 5 digits, 10000 iterations)
+Avg Time (us) - Old: 0.0008    New: 0
+Avg Heap Allocs - Old: 0       New: 0
+Avg Bytes Allocated - Old: 0 B New: 0 B
+
+BENCHMARK: Large 5,000-Digit Numbers (20 iterations)
+Avg Time (us) - Old: 124.5     New: 9
+Avg Heap Allocs - Old: 0       New: 0
+Avg Bytes Allocated - Old: 0 B New: 0 B
+
+Performance gain: ~13.8x faster (Old / New)
+```
+
+## myBigNumber Update
+
+* **Summary:** Improved `MyBigNumber::sum()` implementation to fix carry propagation and reliably handle different-length inputs while preserving step-by-step log output.
+* **Fixes:** Corrects lost carry on long carry-chains and handles leading zeros; returns `"0"` for `sum("0","0")`.
+* **Compatibility:** No API changes — method signature `string sum(string stn1, string stn2)` remains the same; existing callers continue to work.
+* **Tests:** Updated cases in [test/demo.cpp](test/demo.cpp) covering carry propagation, unequal lengths, and zero inputs.
+* **Implementation:** See [src/myBigNumber.cpp](src/myBigNumber.cpp) for the updated logic and step logs.
+* **Build:** Rebuild as before:
+
+```powershell
+g++ -Iinc src/myBigNumber.cpp src/main.cpp -o add2num.exe
+```
+
+For tests:
+
+```powershell
+g++ -Iinc src/myBigNumber.cpp test/demo.cpp -o run_tests.exe
+./run_tests.exe
+```
+
+* **Example output:** (unchanged)
+    - Step 1: 4 + 7 + 0 = 11 (Result: 1, Carry: 1)
+    - Step 2: 3 + 9 + 1 = 13 (Result: 3, Carry: 1)
+    - Step 3: 2 + 8 + 1 = 11 (Result: 1, Carry: 1)
+    - Step 4: 1 + 0 + 1 = 2 (Result: 2, Carry: 0)
+    - Result: 2131
