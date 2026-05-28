@@ -3,6 +3,8 @@
 #include <string>
 #include <vector>
 #include <algorithm>
+#include <iomanip>
+#include <sstream>
 #include <cstdlib>
 #include <new>
 
@@ -37,37 +39,6 @@ void reset_memory_counters() {
 // --- Old implementation (copied from src/myBigNumber_old.cpp) ---
 class MyBigNumberOldImpl {
 public:
-    std::string sum(std::string stn1, std::string stn2) {
-        std::string result;
-        int carry = 0;
-        int maxLength = std::max(stn1.length(), stn2.length());
-
-        stn1 = std::string(maxLength - stn1.length(), '0') + stn1;
-        stn2 = std::string(maxLength - stn2.length(), '0') + stn2;
-
-        for (int i = maxLength - 1; i >= 0; --i) {
-            int digit1 = stn1[i] - '0';
-            int digit2 = stn2[i] - '0';
-            int carryIn = carry;
-            int total = digit1 + digit2 + carryIn;
-            int resultDigit = total % 10;
-            carry = total / 10;
-
-            // O(N) shift insertion
-            result.insert(result.begin(), resultDigit + '0');
-        }
-
-        if (carry > 0) {
-            result.insert(result.begin(), carry + '0');
-        }
-
-        return result;
-    }
-};
-
-// --- New implementation (copied from src/myBigNumber.cpp) ---
-class MyBigNumberNewImpl {
-public:
     std::string sum(const std::string& stn1, const std::string& stn2) {
         std::string result;
         result.reserve(std::max(stn1.length(), stn2.length()) + 1);
@@ -90,6 +61,44 @@ public:
         }
 
         std::reverse(result.begin(), result.end());
+        return result;
+    }
+};
+
+// --- New implementation (copied from src/myBigNumber.cpp) ---
+class MyBigNumberNewImpl {
+public:
+    std::string sum(const std::string& stn1, const std::string& stn2) {
+        size_t maxLength = std::max(stn1.length(), stn2.length());
+
+        const std::string* longer = &stn1;
+        const std::string* shorter = &stn2;
+        if (stn2.length() > stn1.length()) {
+            longer = &stn2;
+            shorter = &stn1;
+        }
+
+        std::string result = *longer;
+        int i = static_cast<int>(longer->length()) - 1;
+        int j = static_cast<int>(shorter->length()) - 1;
+        int carry = 0, digit1 = 0, digit2 = 0, carryIn = 0, step = 1;
+
+        while (j >= 0 || carry > 0) {
+            digit1 = (i >= 0) ? result[i] - '0' : 0;
+            digit2 = (j >= 0) ? (*shorter)[j] - '0' : 0;
+            carryIn = carry;
+            int total = digit1 + digit2 + carryIn;
+            int resultDigit = total % 10;
+            carry = total / 10;
+
+            if (i >= 0) {
+                result[i] = resultDigit + '0';
+            } else {
+                result.insert(result.begin(), resultDigit + '0');
+            }
+            i--; j--;
+        }
+
         return result;
     }
 };
@@ -165,20 +174,28 @@ void run_benchmark(const std::string& label, const std::string& n1, const std::s
 
     double avg_time_old = (double)total_time_old / iterations;
     double avg_time_new = (double)total_time_new / iterations;
-    double avg_allocs_old = (double)total_allocs_old / iterations;
-    double avg_allocs_new = (double)total_allocs_new / iterations;
-    double avg_bytes_old = (double)total_bytes_old / iterations;
-    double avg_bytes_new = (double)total_bytes_new / iterations;
 
-    std::cout << "Metric                  | Old Version        | New Version\n";
-    std::cout << "------------------------|--------------------|--------------------\n";
-    std::cout << "Avg Time (us)          | " << avg_time_old << "              | " << avg_time_new << "\n";
-    std::cout << "Avg Heap Allocs         | " << avg_allocs_old << "                 | " << avg_allocs_new << "\n";
-    std::cout << "Avg Bytes Allocated     | " << avg_bytes_old << " B             | " << avg_bytes_new << " B\n";
+    const int metric_width = 25;
+    const int value_width = 50;
 
-    if (avg_time_new > 0.0) {
-        std::cout << "Performance Gain: " << (avg_time_old / avg_time_new) << "x faster\n";
-    }
+    auto print_row = [&](const std::string& metric, const std::string& old_value, const std::string& new_value) {
+        std::cout << std::left << std::setw(metric_width) << metric
+                  << " | " << std::right << std::setw(value_width) << old_value
+                  << " | " << std::setw(value_width) << new_value << "\n";
+    };
+
+    auto make_separator = [&]() {
+        return std::string(metric_width, '-') + "-+-" + std::string(value_width, '-') + "-+-" + std::string(value_width, '-');
+    };
+
+    std::ostringstream old_time;
+    old_time << std::fixed << std::setprecision(4) << avg_time_old;
+    std::ostringstream new_time;
+    new_time << std::fixed << std::setprecision(4) << avg_time_new;
+
+    print_row("Metric", "Old Version", "New Version");
+    std::cout << make_separator() << "\n";
+    print_row("Avg Time (us)", old_time.str(), new_time.str());
 }
 
 int main() {
@@ -186,9 +203,10 @@ int main() {
     run_benchmark("Small Numbers", "12345", "67890", 10000);
 
     // Large numbers (fewer iterations)
-    std::string big_a(5000, '9');
-    std::string big_b(5000, '1');
-    run_benchmark("Large 5,000-Digit Numbers", big_a, big_b, 20);
+    std::string big_a(1000000, '0');
+    big_a[0] = '1'; // Make it 1 million digits but not all zeros
+    std::string big_b(1, '1');
+    run_benchmark("Large 1 million-Digit Numbers", big_a, big_b, 1000000);
 
     return 0;
 }

@@ -43,8 +43,10 @@ int main() {
     // 6. Robustness / Edge constraints
     verifySum(mbn, "Test 6: Empty values handling", "0", "456", "456");
 
+    verifySum(mbn, "Test 7: Very large values versus very small values", "10000000000000000000000000000000000000000000000000000000000000", "1", "10000000000000000000000000000000000000000000000000000000000001");
+
     std::cout << "\n========================================\n";
-    std::cout << "SUCCESS: All 10 edge cases verified!" << std::endl;
+    std::cout << "SUCCESS: All 11 edge cases verified!" << std::endl;
     std::cout << "========================================\n";
 
     return 0;

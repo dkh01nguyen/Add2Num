@@ -11,30 +11,41 @@ ostream& MyBigNumber::defaultLogStream() {
 }
 
 string MyBigNumber::sum(const string& stn1, const string& stn2) {
-    string result;
-    result.reserve(max(stn1.length(), stn2.length()) + 1);
-    int i = stn1.length() - 1;
-    int j = stn2.length() - 1;
+    const string* longer = &stn1;
+    const string* shorter = &stn2;
+    if (stn2.length() > stn1.length()) {
+        longer = &stn2;
+        shorter = &stn1;
+    }
+
+    string result = *longer;
+    int i = static_cast<int>(longer->length()) - 1;
+    int j = static_cast<int>(shorter->length()) - 1;
     int carry = 0, digit1 = 0, digit2 = 0, carryIn = 0, step = 1;
 
-    while (i >= 0 || j >= 0 || carry > 0) {
-        digit1 = (i >= 0) ? stn1[i] - '0' : 0;
-        digit2 = (j >= 0) ? stn2[j] - '0' : 0;
+    while (j >= 0 || carry > 0) {
+        digit1 = (i >= 0) ? result[i] - '0' : 0;
+        digit2 = (j >= 0) ? (*shorter)[j] - '0' : 0;
         carryIn = carry;
         int total = digit1 + digit2 + carryIn;
         int resultDigit = total % 10;
         carry = total / 10;
 
-        result.push_back(resultDigit + '0');
+        if (i >= 0) {
+            result[i] = resultDigit + '0';
+        } else {
+            result.insert(result.begin(), resultDigit + '0');
+        }
 
         if (enableLogging) {
-            Step(step++, digit1, digit2, carryIn, total, resultDigit, carry, result);
+            string partialResult = result.substr(result.length() - step);
+            reverse(partialResult.begin(), partialResult.end());
+            Step(step++, digit1, digit2, carryIn, total, resultDigit, carry, partialResult);
         }
 
         i--; j--;
     }
 
-    reverse(result.begin(), result.end());
     return result;
 }
 

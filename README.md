@@ -160,7 +160,7 @@ g++ -std=c++17 -Wall -Wextra -pedantic -Iinc src/myBigNumber.cpp test/demo.cpp -
 
 ## Benchmark
 
-An improved micro-benchmark testbench has been added at [test/benchmark.cpp](test/benchmark.cpp). It compares the original (0.0.1 version) O(N^2)-style implementation (`src/myBigNumber_old.cpp`) against the optimized (0.0.2) O(N) implementation (`src/myBigNumber.cpp`) across multiple iterations, measuring average execution time and average heap allocations/bytes. The benchmark is self-contained — both implementations are inlined in `test/benchmark.cpp` so a single compile step is sufficient.
+An improved micro-benchmark testbench has been added at [test/benchmark.cpp](test/benchmark.cpp). It compares the old implementation (`src/myBigNumber_old.cpp`) against the new implementation (`src/myBigNumber.cpp`) across multiple iterations, measuring average execution time and average heap allocations/bytes. The benchmark is self-contained — both implementations are inlined in `test/benchmark.cpp` so a single compile step is sufficient.
 
 To compile and run the benchmark:
 
@@ -192,19 +192,6 @@ Avg Bytes Allocated - Old: 0 B New: 0 B
 
 Performance gain: ~13.8x faster (Old / New)
 ```
-
-## Changes (myBigNumber_old vs. myBigNumber_new)
-
-A new design has been implemented in the core algorithm to make it more performant.
-
-### Key Differences
-
-| Feature | Old Version (`myBigNumber_old`) | New Version (`myBigNumber`) |
-| :--- | :--- | :--- |
-| **Time Complexity** | **$O(N^2)$** due to repetitive $O(N)$ shift-insertion operations (`result.insert(begin(), ...)`) inside the loop. | **$O(N)$** linear time. Appends digits in $O(1)$ using `push_back()` and performs a single $O(N)$ reverse operation at the end. |
-| **Parameter Passing** | Passed by value (`const string stn1`), copying strings on function entry. | Passed by reference (`const string&`), avoiding unnecessary string copies on entry. |
-| **Memory Allocations** | Left-pads string lengths upfront (creating extra temporary strings) and triggers multiple dynamic heap reallocations as the string grows. | Zero string padding needed. Pre-allocates buffer size upfront using `reserve()` to reduce heap reallocations to **exactly 1**. |
-| **Step Logging Detail** | Logs basic operations but ignores cumulative/partial results. | Correctly reverses the intermediate result at each step to print the actual non-reversed `Cumulative Result` (e.g., `1` -> `31` -> `131` -> `2131`). |
 
 ## Notes
 
