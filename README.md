@@ -151,17 +151,11 @@ Or a stricter version:
 g++ -std=c++17 -Wall -Wextra -pedantic -Iinc src/myBigNumber.cpp test/demo.cpp -o run_tests.exe
 ./run_tests.exe
 ```
-
-## Notes
-
-* The current program handles non-negative integers only.
-* The log output is printed to help follow each addition step and carry value.
-
 ## Benchmark
 
-An improved micro-benchmark testbench has been added at [test/benchmark.cpp](test/benchmark.cpp). It compares the original O(N^2)-style implementation (`src/myBigNumber_old.cpp`) against the optimized O(N) implementation (`src/myBigNumber.cpp`) across multiple iterations, measuring average execution time and average heap allocations/bytes. The benchmark is self-contained — both implementations are inlined in `test/benchmark.cpp` so a single compile step is sufficient.
+An improved micro-benchmark testbench has been added at [test/benchmark.cpp](test/benchmark.cpp). It compares the original (0.0.1 version) O(N^2)-style implementation (`src/myBigNumber_old.cpp`) against the optimized (0.0.2) O(N) implementation (`src/myBigNumber.cpp`) across multiple iterations, measuring average execution time and average heap allocations/bytes. The benchmark is self-contained — both implementations are inlined in `test/benchmark.cpp` so a single compile step is sufficient.
 
-To compile and run the benchmark (Windows / MinGW or WSL):
+To compile and run the benchmark:
 
 ```powershell
 g++ -std=c++17 -O2 test/benchmark.cpp -o benchmark.exe
@@ -192,29 +186,7 @@ Avg Bytes Allocated - Old: 0 B New: 0 B
 Performance gain: ~13.8x faster (Old / New)
 ```
 
-## myBigNumber Update
+## Notes
 
-* **Summary:** Improved `MyBigNumber::sum()` implementation to fix carry propagation and reliably handle different-length inputs while preserving step-by-step log output.
-* **Fixes:** Corrects lost carry on long carry-chains and handles leading zeros; returns `"0"` for `sum("0","0")`.
-* **Compatibility:** No API changes — method signature `string sum(string stn1, string stn2)` remains the same; existing callers continue to work.
-* **Tests:** Updated cases in [test/demo.cpp](test/demo.cpp) covering carry propagation, unequal lengths, and zero inputs.
-* **Implementation:** See [src/myBigNumber.cpp](src/myBigNumber.cpp) for the updated logic and step logs.
-* **Build:** Rebuild as before:
-
-```powershell
-g++ -Iinc src/myBigNumber.cpp src/main.cpp -o add2num.exe
-```
-
-For tests:
-
-```powershell
-g++ -Iinc src/myBigNumber.cpp test/demo.cpp -o run_tests.exe
-./run_tests.exe
-```
-
-* **Example output:** (unchanged)
-    - Step 1: 4 + 7 + 0 = 11 (Result: 1, Carry: 1)
-    - Step 2: 3 + 9 + 1 = 13 (Result: 3, Carry: 1)
-    - Step 3: 2 + 8 + 1 = 11 (Result: 1, Carry: 1)
-    - Step 4: 1 + 0 + 1 = 2 (Result: 2, Carry: 0)
-    - Result: 2131
+* The current program handles non-negative integers only.
+* The log output is printed to help follow each addition step and carry value.
