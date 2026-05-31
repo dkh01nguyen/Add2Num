@@ -39,30 +39,31 @@ void reset_memory_counters() {
 // --- Old implementation (copied from src/myBigNumber_old.cpp) ---
 class MyBigNumberOldImpl {
 public:
-    std::string sum(const std::string& stn1, const std::string& stn2) {
+    std::string sum(std::string stn1, std::string stn2) {
         std::string result;
-        result.reserve(std::max(stn1.length(), stn2.length()) + 1);
-
         int carry = 0;
-        int i = (int)stn1.length() - 1;
-        int j = (int)stn2.length() - 1;
+        int maxLength = std::max(stn1.length(), stn2.length());
 
-        while (i >= 0 || j >= 0 || carry > 0) {
-            int digit1 = (i >= 0) ? (stn1[i] - '0') : 0;
-            int digit2 = (j >= 0) ? (stn2[j] - '0') : 0;
-            int total = digit1 + digit2 + carry;
+        stn1 = std::string(maxLength - stn1.length(), '0') + stn1;
+        stn2 = std::string(maxLength - stn2.length(), '0') + stn2;
+
+        for (int i = maxLength - 1; i >= 0; --i) {
+            int digit1 = stn1[i] - '0';
+            int digit2 = stn2[i] - '0';
+            int carryIn = carry;
+            int total = digit1 + digit2 + carryIn;
+            int resultDigit = total % 10;
             carry = total / 10;
 
-            // O(1) back insertion
-            result.push_back((total % 10) + '0');
-
-            i--;
-            j--;
+            result.insert(result.begin(), resultDigit + '0');
         }
 
-        std::reverse(result.begin(), result.end());
+        if (carry > 0) {
+            result.insert(result.begin(), carry + '0');
+        }
+
         return result;
-    }
+}
 };
 
 // --- New implementation (copied from src/myBigNumber.cpp) ---
@@ -82,13 +83,14 @@ public:
         int i = static_cast<int>(longer->length()) - 1;
         int j = static_cast<int>(shorter->length()) - 1;
         int carry = 0, digit1 = 0, digit2 = 0, carryIn = 0, step = 1;
+        int total = 0, resultDigit = 0;
 
         while (j >= 0 || carry > 0) {
             digit1 = (i >= 0) ? result[i] - '0' : 0;
             digit2 = (j >= 0) ? (*shorter)[j] - '0' : 0;
             carryIn = carry;
-            int total = digit1 + digit2 + carryIn;
-            int resultDigit = total % 10;
+            total = digit1 + digit2 + carryIn;
+            resultDigit = total % 10;
             carry = total / 10;
 
             if (i >= 0) {

@@ -2,15 +2,15 @@
 
 using namespace std;
 
-MyBigNumber::MyBigNumber(bool enableLogging, ostream& logStream)
+MyBigNumberOld::MyBigNumberOld(bool enableLogging, ostream& logStream)
     : enableLogging(enableLogging), logLines(&logStream) {}
 
-ostream& MyBigNumber::defaultLogStream() {
+ostream& MyBigNumberOld::defaultLogStream() {
     static ostream& defaultStream = cout;
     return defaultStream;
 }
 
-string MyBigNumber::sum(string stn1, string stn2) {
+string MyBigNumberOld::sum(string stn1, string stn2) {
     string result;
     int carry = 0;
     int maxLength = max(stn1.length(), stn2.length());
@@ -40,6 +40,6 @@ string MyBigNumber::sum(string stn1, string stn2) {
     return result;
 }
 
-void MyBigNumber::Step(int step, int digit1, int digit2, int previousCarry,int total, int resultDigit, int nextCarry, const std::string& partialResult) const {
+void MyBigNumberOld::Step(int step, int digit1, int digit2, int previousCarry,int total, int resultDigit, int nextCarry, const std::string& partialResult) const {
     *logLines << "Step " << step << ": " << digit1 << " + " << digit2 << " + " << previousCarry << " = " << total << " (Result: " << resultDigit << ", Carry: " << nextCarry << ")" << std::endl;
 }

@@ -5,9 +5,9 @@
 #include <algorithm>
 #include <string>
 
-class MyBigNumber {
+class MyBigNumberOld {
 public:
-    MyBigNumber(bool enableLogging = true, std::ostream& logStream = defaultLogStream());
+    MyBigNumberOld(bool enableLogging = true, std::ostream& logStream = defaultLogStream());
     std::string sum(std::string stn1, std::string stn2);
 
 private:
