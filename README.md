@@ -10,14 +10,17 @@ Example: "1234" + "897" = "2131"
 Add2Num/
 |-- inc/
 |   |-- myBigNumber.h
+|   |-- myBigNumber_rev.h
 |   |-- myBigNumber_old.h
 |-- src/
 |   |-- main.cpp
 |   |-- myBigNumber.cpp
-|   |-- myBigNumber_old.h
+|   |-- myBigNumber_rev.cpp
+|   |-- myBigNumber_old.cpp
 |-- test/
-|   |-- demo.cpp
+|   |-- unit_test.cpp
 |   |-- benchmark.cpp
+|   |-- <other relevant test files>
 |-- README.md
 ```
 
@@ -29,7 +32,7 @@ inc/myBigNumber_old.h     The old version of MyBigNumber class
 src/main.cpp              Demo program
 src/myBigNumber.cpp       Implements the big-number addition algorithm
 src/myBigNumber_old.cpp   The implementation previous version
-test/demo.cpp             Testcases
+test/unit_test.cpp             Testcases
 test/benchmark.cpp        Benchmark for comparison
 README.md                 Build and usage guide
 ```
@@ -154,43 +157,34 @@ g++ -Iinc src/myBigNumber.cpp test/demo.cpp -o run_tests.exe
 Or a stricter version:
 
 ```powershell
-g++ -std=c++17 -Wall -Wextra -pedantic -Iinc src/myBigNumber.cpp test/demo.cpp -o run_tests.exe
+g++ -std=c++17 -Wall -Wextra -pedantic -Iinc src/myBigNumber.cpp test/unit_test.cpp -o run_tests.exe
 ./run_tests.exe
 ```
 
 ## Benchmark
 
-An improved micro-benchmark testbench has been added at [test/benchmark.cpp](test/benchmark.cpp). It compares the old implementation (`src/myBigNumber_old.cpp`) against the new implementation (`src/myBigNumber.cpp`) across multiple iterations, measuring average execution time and average heap allocations/bytes. The benchmark is self-contained — both implementations are inlined in `test/benchmark.cpp` so a single compile step is sufficient.
+A small benchmark program is provided at `test/benchmark.cpp` to measure performance characteristics of the big-number implementations.
 
-To compile and run the benchmark:
+Build the benchmark executable with optimization enabled for a realistic measurement:
 
 ```powershell
-g++ -std=c++17 -O2 test/benchmark.cpp -o benchmark.exe
-.\benchmark.exe
+g++ -std=c++17 -O2 -Iinc src/myBigNumber.cpp test/benchmark.cpp -o run_benchmark.exe
+```
+
+Run the benchmark:
+
+```powershell
+./run_benchmark.exe
 ```
 
 Notes:
 
-* The testbench runs a high-iteration small-number test and a lower-iteration large-number test to highlight time and allocation differences.
-* Results show average microsecond timings and average heap allocation counts/bytes for each implementation.
-* You can adjust iteration counts by editing `test/benchmark.cpp` and recompiling.
+* Use `-O2` (or `-O3`) to compile for performance measurements.
+* On Windows PowerShell, run the executable as `./run_benchmark.exe` or `.\run_benchmark.exe`.
+* If there are multiple implementations (e.g., `myBigNumber_rev.cpp`, `myBigNumber_old.cpp`), you can replace the source file in the compile command to benchmark alternate versions, for example:
 
-### Sample benchmark results
-
-The following is a short sample output from running the testbench on a development machine:
-
-```text
-BENCHMARK: Small Numbers (5 and 5 digits, 10000 iterations)
-Avg Time (us) - Old: 0.0008    New: 0
-Avg Heap Allocs - Old: 0       New: 0
-Avg Bytes Allocated - Old: 0 B New: 0 B
-
-BENCHMARK: Large 5,000-Digit Numbers (20 iterations)
-Avg Time (us) - Old: 124.5     New: 9
-Avg Heap Allocs - Old: 0       New: 0
-Avg Bytes Allocated - Old: 0 B New: 0 B
-
-Performance gain: ~13.8x faster (Old / New)
+```powershell
+g++ -std=c++17 -O2 -Iinc src/myBigNumber_rev.cpp test/benchmark.cpp -o benchmark.exe
 ```
 
 ## Notes
