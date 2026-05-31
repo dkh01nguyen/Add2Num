@@ -21,14 +21,14 @@ string MyBigNumber::sum(const string& stn1, const string& stn2) {
     string result = *longer;
     int i = static_cast<int>(longer->length()) - 1;
     int j = static_cast<int>(shorter->length()) - 1;
-    int carry = 0, digit1 = 0, digit2 = 0, carryIn = 0, step = 1;
+    int carry = 0, digit1 = 0, digit2 = 0, carryIn = 0, step = 1, resultDigit = 0, total = 0;
 
     while (j >= 0 || carry > 0) {
         digit1 = (i >= 0) ? result[i] - '0' : 0;
         digit2 = (j >= 0) ? (*shorter)[j] - '0' : 0;
         carryIn = carry;
-        int total = digit1 + digit2 + carryIn;
-        int resultDigit = total % 10;
+        total = digit1 + digit2 + carryIn;
+        resultDigit = total % 10;
         carry = total / 10;
 
         if (i >= 0) {
