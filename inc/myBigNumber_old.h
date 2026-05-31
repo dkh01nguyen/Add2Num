@@ -1,5 +1,5 @@
-#ifndef MY_BIG_NUMBER_H
-#define MY_BIG_NUMBER_H
+#ifndef MY_BIG_NUMBER_OLD_H
+#define MY_BIG_NUMBER_OLD_H
 
 #include <iostream>
 #include <algorithm>
@@ -19,4 +19,4 @@ private:
     void Step(int step, int digit1, int digit2, int previousCarry, int total, int resultDigit, int nextCarry, const std::string& partialResult) const;
 };
 
-#endif // MY_BIG_NUMBER_H
+#endif // MY_BIG_NUMBER_OLD_H

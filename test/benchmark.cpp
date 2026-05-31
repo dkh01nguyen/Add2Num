@@ -6,39 +6,55 @@
 #include <iomanip>
 #include <sstream>
 #include <cstdlib>
-#include <new>
+#include <cassert>
 
-// Global counters for memory tracking
-size_t global_allocations = 0;
-size_t global_bytes_allocated = 0;
+// Platform-specific headers for accurate memory tracking via OS API
+#if defined(_WIN32) || defined(_WIN64)
+#include <windows.h>
+#include <psapi.h>
+#else
+#include <sys/resource.h>
+#include <unistd.h>
+#endif
 
-// Overriding global new to intercept allocations
-void* operator new(size_t size) {
-    global_allocations++;
-    global_bytes_allocated += size;
-    void* p = malloc(size);
-    if (p == nullptr) {
-        throw std::bad_alloc();
+// Function to get the current Memory Usage (Resident Set Size / Working Set) in Bytes
+size_t get_current_memory_usage() {
+#if defined(_WIN32) || defined(_WIN64)
+    PROCESS_MEMORY_COUNTERS pmc;
+    if (GetProcessMemoryInfo(GetCurrentProcess(), &pmc, sizeof(pmc))) {
+        return pmc.WorkingSetSize;
     }
-
-    return p;
+    return 0;
+#else
+    // Long format parsing for Linux /proc/self/statm (Page size * Resident Pages)
+    long pages = 0;
+    size_t page_size = sysconf(_SC_PAGESIZE);
+    FILE* fp = fopen("/proc/self/statm", "r");
+    if (fp) {
+        if (fscanf(fp, "%*s %ld", &pages) == 1) {
+            fclose(fp);
+            return pages * page_size;
+        }
+        fclose(fp);
+    }
+    // Fallback for macOS/BSD using getrusage
+    struct rusage usage;
+    if (getrusage(RUSAGE_SELF, &usage) == 0) {
+        return usage.ru_maxrss * 1024; // Convert KB to Bytes
+    }
+    return 0;
+#endif
 }
 
-void operator delete(void* p) noexcept {
-    free(p);
-}
+// ============================================================================
+// PROJECT IMPLEMENTATIONS (INLINED)
+// ============================================================================
 
-void reset_memory_counters() {
-    global_allocations = 0;
-    global_bytes_allocated = 0;
-}
-
-// Inline the project's two implementations here so the benchmark is self-contained.
-// This avoids cross-file class-name collisions and keeps the benchmark single-file.
-
-// --- Old implementation (copied from src/myBigNumber_old.cpp) ---
 class MyBigNumberOldImpl {
 public:
+    MyBigNumberOldImpl(bool enableLogging = false, std::ostream& logStream = std::cout)
+        : enableLogging(enableLogging), logLines(&logStream) {}
+
     std::string sum(std::string stn1, std::string stn2) {
         std::string result;
         int carry = 0;
@@ -63,17 +79,21 @@ public:
         }
 
         return result;
-}
+    }
+private:
+    bool enableLogging;
+    std::ostream* logLines;
 };
 
-// --- New implementation (copied from src/myBigNumber.cpp) ---
 class MyBigNumberNewImpl {
 public:
-    std::string sum(const std::string& stn1, const std::string& stn2) {
-        size_t maxLength = std::max(stn1.length(), stn2.length());
+    MyBigNumberNewImpl(bool enableLogging = false, std::ostream& logStream = std::cout)
+        : enableLogging(enableLogging), logLines(&logStream) {}
 
+    std::string sum(const std::string& stn1, const std::string& stn2) {
         const std::string* longer = &stn1;
         const std::string* shorter = &stn2;
+        
         if (stn2.length() > stn1.length()) {
             longer = &stn2;
             shorter = &stn1;
@@ -82,7 +102,7 @@ public:
         std::string result = *longer;
         int i = static_cast<int>(longer->length()) - 1;
         int j = static_cast<int>(shorter->length()) - 1;
-        int carry = 0, digit1 = 0, digit2 = 0, carryIn = 0, step = 1;
+        int carry = 0, digit1 = 0, digit2 = 0, carryIn = 0;
         int total = 0, resultDigit = 0;
 
         while (j >= 0 || carry > 0) {
@@ -103,9 +123,11 @@ public:
 
         return result;
     }
+private:
+    bool enableLogging;
+    std::ostream* logLines;
 };
 
-// Small adapters to keep the benchmark code below unchanged.
 static std::string sum_old(const std::string& a, const std::string& b) {
     MyBigNumberOldImpl impl;
     return impl.sum(a, b);
@@ -116,69 +138,91 @@ static std::string sum_new(const std::string& a, const std::string& b) {
     return impl.sum(a, b);
 }
 
-// ==========================================
-// BENCHMARK RUNNER
-// ==========================================
+// // ============================================================================
+// // AUTOMATED TESTS
+// // ============================================================================
+// void run_automated_tests() {
+//     std::cout << "==================================================\n";
+//     std::cout << "RUNNING UNIT TESTS & STATEMENT COVERAGE TESTS\n";
+//     std::cout << "==================================================\n";
+
+//     assert(sum_old("123", "456") == "579");
+//     assert(sum_new("123", "456") == "579");
+//     assert(sum_old("99", "1") == "100");
+//     assert(sum_new("99", "1") == "100");
+    
+//     std::cout << " -> [PASS] Functional logic assertions verified.\n\n";
+// }
+
+// ============================================================================
+// BENCHMARK RUNNER (SYSTEM-LEVEL MEMORY TRACKING)
+// ============================================================================
 void run_benchmark(const std::string& label, const std::string& n1, const std::string& n2, int iterations) {
-    std::cout << "\n==================================================\n";
+    std::cout << "==================================================\n";
     std::cout << "BENCHMARK: " << label << "\n";
     std::cout << "String lengths: " << n1.length() << " and " << n2.length() << " digits\n";
     std::cout << "Iterations: " << iterations << "\n";
     std::cout << "==================================================\n";
 
-    // Warm-up single run to ensure lazy allocations are done
-    reset_memory_counters();
-    volatile std::string warm_old = sum_old(n1, n2);
-    reset_memory_counters();
-    volatile std::string warm_new = sum_new(n1, n2);
-
-    // Old version measurements
-    uint64_t total_time_old = 0;
-    uint64_t total_allocs_old = 0;
-    uint64_t total_bytes_old = 0;
     std::string ref_result;
 
+    // --- MEASURE OLD VERSION ---
+    uint64_t total_time_old = 0;
+    size_t peak_mem_old = 0;
+
     for (int it = 0; it < iterations; ++it) {
-        reset_memory_counters();
+        size_t mem_before = get_current_memory_usage();
+        
         auto start = std::chrono::high_resolution_clock::now();
         std::string res = sum_old(n1, n2);
         auto end = std::chrono::high_resolution_clock::now();
+        
+        size_t mem_after = get_current_memory_usage();
 
         if (it == 0) ref_result = res;
 
         auto dur = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
         total_time_old += (uint64_t)dur;
-        total_allocs_old += global_allocations;
-        total_bytes_old += global_bytes_allocated;
+        
+        if (mem_after > mem_before) {
+            size_t diff = mem_after - mem_before;
+            if (diff > peak_mem_old) peak_mem_old = diff;
+        }
     }
 
-    // New version measurements
+    // --- MEASURE NEW VERSION ---
     uint64_t total_time_new = 0;
-    uint64_t total_allocs_new = 0;
-    uint64_t total_bytes_new = 0;
+    size_t peak_mem_new = 0;
 
     for (int it = 0; it < iterations; ++it) {
-        reset_memory_counters();
+        size_t mem_before = get_current_memory_usage();
+        
         auto start = std::chrono::high_resolution_clock::now();
         std::string res = sum_new(n1, n2);
         auto end = std::chrono::high_resolution_clock::now();
+        
+        size_t mem_after = get_current_memory_usage();
 
         if (res != ref_result) {
-            std::cerr << "ERROR: Results do not match between implementations!\n";
+            std::cerr << "ERROR: Results do not match!\n";
             return;
         }
 
         auto dur = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
         total_time_new += (uint64_t)dur;
-        total_allocs_new += global_allocations;
-        total_bytes_new += global_bytes_allocated;
+        
+        if (mem_after > mem_before) {
+            size_t diff = mem_after - mem_before;
+            if (diff > peak_mem_new) peak_mem_new = diff;
+        }
     }
 
+    // --- PRINT RESULTS TABLE ---
     double avg_time_old = (double)total_time_old / iterations;
     double avg_time_new = (double)total_time_new / iterations;
 
     const int metric_width = 25;
-    const int value_width = 50;
+    const int value_width = 25;
 
     auto print_row = [&](const std::string& metric, const std::string& old_value, const std::string& new_value) {
         std::cout << std::left << std::setw(metric_width) << metric
@@ -190,25 +234,34 @@ void run_benchmark(const std::string& label, const std::string& n1, const std::s
         return std::string(metric_width, '-') + "-+-" + std::string(value_width, '-') + "-+-" + std::string(value_width, '-');
     };
 
-    std::ostringstream old_time;
+    std::ostringstream old_time, new_time;
     old_time << std::fixed << std::setprecision(4) << avg_time_old;
-    std::ostringstream new_time;
     new_time << std::fixed << std::setprecision(4) << avg_time_new;
+
+    std::ostringstream old_mem_str, new_mem_str;
+    // Format output to KB for better readability
+    old_mem_str << std::fixed << std::setprecision(2) << (double)peak_mem_old << " B";
+    new_mem_str << std::fixed << std::setprecision(2) << (double)peak_mem_new << " B";
 
     print_row("Metric", "Old Version", "New Version");
     std::cout << make_separator() << "\n";
     print_row("Avg Time (us)", old_time.str(), new_time.str());
+    print_row("Peak Delta Memory", old_mem_str.str(), new_mem_str.str());
+    std::cout << "\n";
 }
 
 int main() {
-    // Small numbers (many iterations)
+    // run_automated_tests();
+
+    // Small dataset
     run_benchmark("Small Numbers", "12345", "67890", 10000);
 
-    // Large numbers (fewer iterations)
-    std::string big_a(1000000, '0');
-    big_a[0] = '1'; // Make it 1 million digits but not all zeros
-    std::string big_b(1, '1');
-    run_benchmark("Large 1 million-Digit Numbers", big_a, big_b, 1000000);
+    // Ultra Large dataset to force real heap impact
+    // We increase size to 50,000 digits to bypass OS lazy allocation caching boundaries
+    std::string big_a(50000, '9');
+    big_a[0] = '1';
+    std::string big_b(50000, '9');
+    run_benchmark("Large 50k-Digit Numbers (Stress Test)", big_a, big_b, 1000);
 
     return 0;
 }
